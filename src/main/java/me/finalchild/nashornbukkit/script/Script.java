@@ -78,12 +78,12 @@ public class Script {
     public Object eval() throws IOException, ScriptException {
         evalExtensions();
 
-        BukkitImporter.importBukkit(this);
+        BukkitImporter.importBukkit(this, context);
 
-        Bindings bindings = getContext().getBindings(ScriptContext.ENGINE_SCOPE);
+        Bindings bindings = context.getBindings(ScriptContext.ENGINE_SCOPE);
         BufferedReader br2 = Files.newBufferedReader(getFile());
         bindings.put(ScriptEngine.FILENAME, getFile().getFileName());
-        Object result = getHost().getEngine().eval(br2, getContext());
+        Object result = getHost().getEngine().eval(br2, context);
         br2.close();
         return result;
     }
@@ -102,10 +102,6 @@ public class Script {
 
     public Logger getLogger() {
         return logger;
-    }
-
-    public ScriptContext getContext() {
-        return context;
     }
 
     public Map<String, Extension> getInstalledExtensions() {
@@ -133,12 +129,12 @@ public class Script {
 
         extensionsBeingInstalled.put(extension.getId(), extension);
 
-        BukkitImporter.importBukkit(this, extension);
+        BukkitImporter.importBukkit(this, context, extension);
 
-        Bindings bindings = getContext().getBindings(ScriptContext.ENGINE_SCOPE);
+        Bindings bindings = context.getBindings(ScriptContext.ENGINE_SCOPE);
         bindings.put(ScriptEngine.FILENAME, extension.getFile().getFileName());
         BufferedReader br = Files.newBufferedReader(extension.getFile());
-        getHost().getEngine().eval(br, getContext());
+        getHost().getEngine().eval(br, context);
         br.close();
 
         extensionsBeingInstalled.remove(extension.getId());
