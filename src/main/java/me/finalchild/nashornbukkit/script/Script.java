@@ -85,6 +85,8 @@ public class Script {
         bindings.put(ScriptEngine.FILENAME, getFile().getFileName());
         Object result = getHost().getEngine().eval(br2, context);
         br2.close();
+
+        context = null;
         return result;
     }
 
