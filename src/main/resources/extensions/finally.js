@@ -1,5 +1,4 @@
 var nashornBukkit = Java.type("me.finalchild.nashornbukkit.NashornBukkit").getInstance();
-var host = nashornBukkit.host;
 
 var logger = script.logger;
 
