@@ -76,6 +76,10 @@ public class BukkitImporter {
         return types;
     }
 
+    public static void removeCache() {
+        types = null;
+    }
+
     public static void importBukkit(Script script) throws ScriptException, IOException {
         Bindings bindings = script.getContext().getBindings(ScriptContext.ENGINE_SCOPE);
         Map<String, ClassPath.ClassInfo> types = getTypes();

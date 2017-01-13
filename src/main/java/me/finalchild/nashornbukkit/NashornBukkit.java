@@ -25,6 +25,7 @@
 package me.finalchild.nashornbukkit;
 
 import me.finalchild.nashornbukkit.script.Host;
+import me.finalchild.nashornbukkit.util.BukkitImporter;
 import org.bukkit.plugin.java.JavaPlugin;
 
 public class NashornBukkit extends JavaPlugin {
@@ -49,5 +50,7 @@ public class NashornBukkit extends JavaPlugin {
         host.loadExtensions(getDataFolder().toPath().resolve("extensions"));
         host.loadScripts(getDataFolder().toPath());
         host.evalScripts();
+
+        BukkitImporter.removeCache();
     }
 }
