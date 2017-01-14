@@ -50,7 +50,5 @@ public class NashornBukkit extends JavaPlugin {
         host.loadExtensions(getDataFolder().toPath().resolve("extensions"));
         host.loadScripts(getDataFolder().toPath());
         host.evalScripts();
-
-        BukkitImporter.removeCache();
     }
 }

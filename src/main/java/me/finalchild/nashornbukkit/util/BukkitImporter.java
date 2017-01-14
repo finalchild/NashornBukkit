@@ -45,6 +45,7 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
@@ -52,35 +53,48 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 public class BukkitImporter {
-    private static Map<String, ClassPath.ClassInfo> types;
+    private boolean caching;
+    private Map<String, ClassPath.ClassInfo> typesCache;
 
-    public static Map<String, ClassPath.ClassInfo> getTypes() {
-        if (types == null) {
-            ClassPath classpath;
-            try {
-                classpath = ClassPath.from(NashornBukkit.class.getClassLoader());
-            } catch (IOException e) {
-                e.printStackTrace();
-                return null;
-            }
-            ImmutableSet<ClassPath.ClassInfo> result = classpath.getTopLevelClassesRecursive("org.bukkit");
+    public Map<String, ClassPath.ClassInfo> getTypes() {
+        return getTypes(caching);
+    }
 
-            types = result.stream()
+    public Map<String, ClassPath.ClassInfo> getTypes(boolean cache) {
+        if (typesCache != null) {
+            return typesCache;
+        }
+
+        ClassPath classpath;
+        try {
+            classpath = ClassPath.from(NashornBukkit.class.getClassLoader());
+        } catch (IOException e) {
+            e.printStackTrace();
+            return null;
+        }
+        ImmutableSet<ClassPath.ClassInfo> result = classpath.getTopLevelClassesRecursive("org.bukkit");
+        Map<String, ClassPath.ClassInfo> types = result.stream()
                     .filter(e -> !(e.getName().startsWith("org.bukkit.craftbukkit")))
                     .filter(e -> !(e.getSimpleName().equals("package-info")))
                     .collect(Collectors.toMap(ClassPath.ClassInfo::getSimpleName, Function.identity(), (a, b) -> {
                         NashornBukkit.getInstance().getLogger().info("Duplicate class name: " + a.getName() + " and " + b.getName());
                         return a;
-            }));
+                    }));
+
+        if (cache) {
+            typesCache = types;
         }
-        return types;
+        return Collections.unmodifiableMap(types);
     }
 
-    public static void removeCache() {
-        types = null;
+    public void setCaching(boolean caching) {
+        if (!caching) {
+            typesCache = null;
+        }
+        this.caching = caching;
     }
 
-    public static void importBukkit(Script script) throws ScriptException, IOException {
+    public void importBukkit(Script script) throws ScriptException, IOException {
         Bindings bindings = script.getContext().getBindings(ScriptContext.ENGINE_SCOPE);
         Map<String, ClassPath.ClassInfo> types = getTypes();
 
@@ -98,7 +112,7 @@ public class BukkitImporter {
                 });
     }
 
-    public static void importBukkit(Script script, Extension extension) throws ScriptException, IOException {
+    public void importBukkit(Script script, Extension extension) throws ScriptException, IOException {
         Bindings bindings = script.getContext().getBindings(ScriptContext.ENGINE_SCOPE);
         Map<String, ClassPath.ClassInfo> types = getTypes();
 
@@ -116,7 +130,7 @@ public class BukkitImporter {
                 });
     }
 
-    public static Set<String> getUsedIdentifiers(Path file) throws IOException {
+    public Set<String> getUsedIdentifiers(Path file) throws IOException {
         Set<String> result = new HashSet<>();
         String text = new String(Files.readAllBytes(file), StandardCharsets.UTF_8);
         String json;
@@ -134,7 +148,7 @@ public class BukkitImporter {
         return result;
     }
 
-    private static void addUsedIdentifiers(JsonObject obj, Set<String> set) {
+    private void addUsedIdentifiers(JsonObject obj, Set<String> set) {
         if (obj.has("type")) {
             String type = obj.getAsJsonPrimitive("type").getAsString();
             if (type.equals("Identifier")) {
@@ -151,7 +165,7 @@ public class BukkitImporter {
         }
     }
 
-    private static void addUsedIdentifiers(JsonArray arr, Set<String> set) {
+    private void addUsedIdentifiers(JsonArray arr, Set<String> set) {
         for (JsonElement element : arr) {
             if (element.isJsonObject()) {
                 addUsedIdentifiers(element.getAsJsonObject(), set);

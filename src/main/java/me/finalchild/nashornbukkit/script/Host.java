@@ -26,6 +26,7 @@ package me.finalchild.nashornbukkit.script;
 
 import jdk.nashorn.api.scripting.NashornScriptEngineFactory;
 import me.finalchild.nashornbukkit.NashornBukkit;
+import me.finalchild.nashornbukkit.util.BukkitImporter;
 import me.finalchild.nashornbukkit.util.ScriptExceptionLogger;
 
 import javax.script.ScriptEngine;
@@ -43,9 +44,11 @@ public class Host {
     private ScriptEngine engine;
     private Map<String, Extension> loadedExtensions = new HashMap<>();
     private Map<String, Script> loadedScripts = new HashMap<>();
+    private BukkitImporter importer;
 
     public Host() {
         engine = new NashornScriptEngineFactory().getScriptEngine(/*new String[] {"-scripting"}, */NashornBukkit.class.getClassLoader());
+        importer = new BukkitImporter();
     }
 
     public void loadExtensions(Path directory) {
@@ -89,6 +92,8 @@ public class Host {
     }
 
     public void evalScripts() {
+        getImporter().setCaching(true);
+
         for (Script loadedScript : loadedScripts.values()) {
             try {
                 loadedScript.eval();
@@ -98,6 +103,8 @@ public class Host {
                 ScriptExceptionLogger.log(e);
             }
         }
+
+        getImporter().setCaching(false);
     }
 
     private void loadExtension(Path file) {
@@ -130,4 +137,7 @@ public class Host {
         return loadedScripts;
     }
 
+    public BukkitImporter getImporter() {
+        return importer;
+    }
 }

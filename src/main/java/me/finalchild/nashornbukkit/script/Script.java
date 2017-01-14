@@ -76,9 +76,9 @@ public class Script {
     }
 
     public Object eval() throws IOException, ScriptException {
-        evalExtensions();
+        require("finally");
 
-        BukkitImporter.importBukkit(this);
+        getHost().getImporter().importBukkit(this);
 
         Bindings bindings = getContext().getBindings(ScriptContext.ENGINE_SCOPE);
         BufferedReader br2 = Files.newBufferedReader(getFile());
@@ -112,16 +112,6 @@ public class Script {
         return installedExtensions;
     }
 
-    public void evalExtensions() {
-        for (Extension extension : getHost().getExtensions().values()) {
-            try {
-                evalExtension(extension);
-            } catch (IOException | ScriptException e) {
-                e.printStackTrace();
-            }
-        }
-    }
-
     public void evalExtension(Extension extension) throws IOException, ScriptException {
         if (extensionsBeingInstalled.containsKey(extension.getId())) {
             throw new UnsupportedOperationException();
@@ -133,7 +123,7 @@ public class Script {
 
         extensionsBeingInstalled.put(extension.getId(), extension);
 
-        BukkitImporter.importBukkit(this, extension);
+        getHost().getImporter().importBukkit(this, extension);
 
         Bindings bindings = getContext().getBindings(ScriptContext.ENGINE_SCOPE);
         bindings.put(ScriptEngine.FILENAME, extension.getFile().getFileName());
