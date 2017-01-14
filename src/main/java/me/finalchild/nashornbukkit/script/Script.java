@@ -24,16 +24,26 @@
 
 package me.finalchild.nashornbukkit.script;
 
+import jdk.internal.dynalink.beans.StaticClass;
 import me.finalchild.nashornbukkit.NashornBukkit;
-import me.finalchild.nashornbukkit.util.BukkitImporter;
+import me.finalchild.nashornbukkit.command.NBCommandUtil;
 import me.finalchild.nashornbukkit.util.ScriptExceptionLogger;
+import org.bukkit.command.Command;
+import org.bukkit.command.CommandSender;
+import org.bukkit.event.Event;
+import org.bukkit.event.EventPriority;
+import org.bukkit.event.Listener;
 
 import javax.script.*;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.*;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.NoSuchElementException;
+import java.util.function.BiFunction;
+import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -49,6 +59,8 @@ public class Script {
 
     private Map<String, Extension> installedExtensions = new HashMap<>();
     private Map<String, Extension> extensionsBeingInstalled = new HashMap<>();
+
+    private Listener listener;
 
     public Script(Host host, Path file) throws ScriptException, IOException {
         this.host = host;
@@ -72,7 +84,16 @@ public class Script {
         bindings.remove("exit");
         bindings.remove("quit");
 
+        Object global = getHost().getEngine().eval("this", context);
+        try {
+            ((Invocable) host.getEngine()).invokeMethod(bindings.get("Object"), "bindProperties", global, this);
+        } catch (NoSuchMethodException e) {
+            e.printStackTrace();
+        }
+
         this.context = context;
+
+        listener = new Listener() {};
     }
 
     public Object eval() throws IOException, ScriptException {
@@ -147,6 +168,39 @@ public class Script {
             throw new UnsupportedOperationException();
         }
         return extension;
+    }
+
+    public void on(StaticClass event, Consumer<Event> executor) {
+        on((Class<? extends Event>) event.getRepresentedClass(), executor, EventPriority.NORMAL);
+    }
+
+    public void on(StaticClass event, Consumer<Event> executor, EventPriority eventPriority) {
+        on((Class<? extends Event>) event.getRepresentedClass(), executor, eventPriority);
+    }
+
+    public void on(Class<? extends Event> event, Consumer<Event> executor) {
+        on(event, executor, EventPriority.NORMAL);
+    }
+
+    public void on(Class<? extends Event> event, Consumer<Event> executor, EventPriority eventPriority) {
+        NashornBukkit.getInstance().getServer().getPluginManager().registerEvent(event, listener, eventPriority, (listener, event1) -> executor.accept(event1), NashornBukkit.getInstance());
+    }
+
+    public void onCommand(String name, BiFunction<CommandSender, String[], Boolean> executor) {
+        onCommand(name, new Command(name) {
+            @Override
+            public boolean execute(CommandSender sender, String commandLabel, String[] args) {
+                try {
+                    return executor.apply(sender, args);
+                } catch (ClassCastException e) {
+                    return true;
+                }
+            }
+        });
+    }
+
+    public void onCommand(String name, Command command) {
+        NBCommandUtil.register(name, command);
     }
 
     @Override
