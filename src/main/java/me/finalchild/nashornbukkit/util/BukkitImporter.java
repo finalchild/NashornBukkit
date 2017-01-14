@@ -80,8 +80,8 @@ public class BukkitImporter {
         types = null;
     }
 
-    public static void importBukkit(Script script, ScriptContext context) throws ScriptException, IOException {
-        Bindings bindings = context.getBindings(ScriptContext.ENGINE_SCOPE);
+    public static void importBukkit(Script script) throws ScriptException, IOException {
+        Bindings bindings = script.getContext().getBindings(ScriptContext.ENGINE_SCOPE);
         Map<String, ClassPath.ClassInfo> types = getTypes();
 
         Set<String> usedIdentifiers = getUsedIdentifiers(script.getFile());
@@ -91,15 +91,15 @@ public class BukkitImporter {
                 .forEach(e -> {
                     ClassPath.ClassInfo type = types.get(e);
                     try {
-                        bindings.put(e, script.getHost().getEngine().eval("Java.type(\"" + type.getName() + "\")", context));
+                        bindings.put(e, script.getHost().getEngine().eval("Java.type(\"" + type.getName() + "\")", script.getContext()));
                     } catch (ScriptException e1) {
                         e1.printStackTrace();
                     }
                 });
     }
 
-    public static void importBukkit(Script script, ScriptContext context, Extension extension) throws ScriptException, IOException {
-        Bindings bindings = context.getBindings(ScriptContext.ENGINE_SCOPE);
+    public static void importBukkit(Script script, Extension extension) throws ScriptException, IOException {
+        Bindings bindings = script.getContext().getBindings(ScriptContext.ENGINE_SCOPE);
         Map<String, ClassPath.ClassInfo> types = getTypes();
 
         Set<String> usedIdentifiers = getUsedIdentifiers(extension.getFile());
@@ -109,7 +109,7 @@ public class BukkitImporter {
                 .forEach(e -> {
                     ClassPath.ClassInfo type = types.get(e);
                     try {
-                        bindings.put(e, script.getHost().getEngine().eval("Java.type(\"" + type.getName() + "\")", context));
+                        bindings.put(e, script.getHost().getEngine().eval("Java.type(\"" + type.getName() + "\")", script.getContext()));
                     } catch (ScriptException e1) {
                         e1.printStackTrace();
                     }
