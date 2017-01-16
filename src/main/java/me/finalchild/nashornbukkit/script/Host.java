@@ -141,4 +141,8 @@ public class Host {
     public BukkitImporter getImporter() {
         return importer;
     }
+
+    public void onDisable() {
+        loadedScripts.values().forEach(Script::disable);
+    }
 }

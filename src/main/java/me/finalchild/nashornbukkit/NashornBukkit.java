@@ -46,8 +46,17 @@ public class NashornBukkit extends JavaPlugin {
     public void onEnable() {
         saveResource("extensions/finally.js", true);
 
-        host.loadExtensions(getDataFolder().toPath().resolve("extensions"));
-        host.loadScripts(getDataFolder().toPath());
-        host.evalScripts();
+        getHost().loadExtensions(getDataFolder().toPath().resolve("extensions"));
+        getHost().loadScripts(getDataFolder().toPath());
+        getHost().evalScripts();
+    }
+
+    @Override
+    public void onDisable() {
+        getHost().onDisable();
+    }
+
+    public Host getHost() {
+        return host;
     }
 }

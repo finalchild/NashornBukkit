@@ -173,6 +173,15 @@ public class Script {
         return extension;
     }
 
+    public void disable() {
+        try {
+            ((Invocable) host.getEngine()).invokeFunction("onDisable");
+        } catch (NoSuchMethodException expected) {
+        } catch (ScriptException e) {
+            e.printStackTrace();
+        }
+    }
+
     public void on(StaticClass event, Consumer<Event> executor) {
         on((Class<? extends Event>) event.getRepresentedClass(), executor, EventPriority.NORMAL);
     }
