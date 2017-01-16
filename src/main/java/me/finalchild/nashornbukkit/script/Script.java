@@ -25,6 +25,7 @@
 package me.finalchild.nashornbukkit.script;
 
 import jdk.internal.dynalink.beans.StaticClass;
+import jdk.nashorn.api.scripting.JSObject;
 import me.finalchild.nashornbukkit.NashornBukkit;
 import me.finalchild.nashornbukkit.command.NBCommandUtil;
 import me.finalchild.nashornbukkit.util.ScriptExceptionLogger;
@@ -174,11 +175,12 @@ public class Script {
     }
 
     public void disable() {
-        try {
-            ((Invocable) host.getEngine()).invokeFunction("onDisable");
-        } catch (NoSuchMethodException expected) {
-        } catch (ScriptException e) {
-            e.printStackTrace();
+        Object obj = getContext().getAttribute("onDisable", ScriptContext.ENGINE_SCOPE);
+        if (obj instanceof JSObject) {
+            JSObject jsobj = (JSObject) obj;
+            if (jsobj.isFunction()) {
+                jsobj.call(null);
+            }
         }
     }
 
