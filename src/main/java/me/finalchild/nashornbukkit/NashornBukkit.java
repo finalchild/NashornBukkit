@@ -25,7 +25,6 @@
 package me.finalchild.nashornbukkit;
 
 import me.finalchild.nashornbukkit.script.Host;
-import me.finalchild.nashornbukkit.util.BukkitImporter;
 import org.bukkit.plugin.java.JavaPlugin;
 
 public class NashornBukkit extends JavaPlugin {
@@ -47,10 +46,17 @@ public class NashornBukkit extends JavaPlugin {
     public void onEnable() {
         saveResource("extensions/finally.js", true);
 
-        host.loadExtensions(getDataFolder().toPath().resolve("extensions"));
-        host.loadScripts(getDataFolder().toPath());
-        host.evalScripts();
+        getHost().loadExtensions(getDataFolder().toPath().resolve("extensions"));
+        getHost().loadScripts(getDataFolder().toPath());
+        getHost().evalScripts();
+    }
 
-        BukkitImporter.removeCache();
+    @Override
+    public void onDisable() {
+        getHost().onDisable();
+    }
+
+    public Host getHost() {
+        return host;
     }
 }

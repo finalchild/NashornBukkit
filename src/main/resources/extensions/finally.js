@@ -1,55 +1,37 @@
 var nashornBukkit = Java.type("me.finalchild.nashornbukkit.NashornBukkit").getInstance();
 
-var logger = script.logger;
-
-function on(event, listener, eventPriority) {
-  var nashornBukkit = Java.type("me.finalchild.nashornbukkit.NashornBukkit").getInstance();
-  var pluginManager = nashornBukkit.getServer().getPluginManager();
-  var NBListener = Java.type("me.finalchild.nashornbukkit.event.NBListener");
-  var NBEventExecutor = Java.type("me.finalchild.nashornbukkit.event.NBEventExecutor");
-
-  if (typeof event === "function") {
-    event = event.class;
-  }
-  if (eventPriority == undefined) {
-    eventPriority = EventPriority.NORMAL;
-  }
-
-  var func = function(event) {
-    (listener.bind(event))(event);
-  };
-
-  pluginManager.registerEvent(event, NBListener.INSTANCE, EventPriority.NORMAL, new NBEventExecutor(func), nashornBukkit);
-}
-
 Function.prototype.on = function(event, eventPriority) {
-  var listener = this;
-  var nashornBukkit = Java.type("me.finalchild.nashornbukkit.NashornBukkit").getInstance();
-  var pluginManager = nashornBukkit.getServer().getPluginManager();
-  var NBListener = Java.type("me.finalchild.nashornbukkit.event.NBListener");
-  var NBEventExecutor = Java.type("me.finalchild.nashornbukkit.event.NBEventExecutor");
-
-  if (typeof event === "function") {
-    event = event.class;
-  }
   if (eventPriority == undefined) {
-    eventPriority = EventPriority.NORMAL;
+    script.on(event, this);
+  } else {
+    script.on(event, this, eventPriority)
   }
-
-  var func = function(event) {
-    (listener.bind(event))(event);
-  };
-
-  pluginManager.registerEvent(event, NBListener.INSTANCE, EventPriority.NORMAL, new NBEventExecutor(func), nashornBukkit);
-}
-
-function onCommand(name, executor) {
-  var NBCommandUtil = Java.type("me.finalchild.nashornbukkit.command.NBCommandUtil");
-  NBCommandUtil.register(name, executor);
 }
 
 Function.prototype.onCommand = function(name) {
-  var executor = this;
-  var NBCommandUtil = Java.type("me.finalchild.nashornbukkit.command.NBCommandUtil");
-  NBCommandUtil.register(name, executor);
+  script.onCommand(name, this);
+}
+
+Function.prototype.runTask = function() {
+  script.runTask(this);
+}
+
+Function.prototype.runTaskAsynchronously = function() {
+  script.runTaskAsynchronously(this);
+}
+
+Function.prototype.runTaskLater = function(delay) {
+  script.runTaskLater(this, delay);
+}
+
+Function.prototype.runTaskLaterAsynchronously = function(delay) {
+  script.runTaskLaterAsynchronously(this, delay);
+}
+
+Function.prototype.runTaskTimer = function(delay, period) {
+  script.runTaskTimer(this, delay, period);
+}
+
+Function.prototype.runTaskTimerAsynchronously = function(delay, period) {
+  script.runTaskTimerAsynchronously(this, delay, period);
 }
