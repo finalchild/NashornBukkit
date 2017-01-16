@@ -33,6 +33,8 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.event.Event;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
+import org.bukkit.scheduler.BukkitRunnable;
+import org.bukkit.scheduler.BukkitTask;
 
 import javax.script.*;
 import java.io.BufferedReader;
@@ -87,6 +89,7 @@ public class Script {
         Object global = getHost().getEngine().eval("this", context);
         try {
             ((Invocable) host.getEngine()).invokeMethod(bindings.get("Object"), "bindProperties", global, this);
+            ((Invocable) host.getEngine()).invokeMethod(bindings.get("Object"), "bindProperties", global, NashornBukkit.getInstance().getServer());
         } catch (NoSuchMethodException e) {
             e.printStackTrace();
         }
@@ -201,6 +204,84 @@ public class Script {
 
     public void onCommand(String name, Command command) {
         NBCommandUtil.register(name, command);
+    }
+
+    public BukkitTask runTask(Runnable runnable) {
+        return runTask(new BukkitRunnable() {
+            @Override
+            public void run() {
+                runnable.run();
+            }
+        });
+    }
+
+    public BukkitTask runTask(BukkitRunnable bukkitRunnable) {
+        return bukkitRunnable.runTask(NashornBukkit.getInstance());
+    }
+
+    public BukkitTask runTaskAsynchronously(Runnable runnable) {
+        return runTaskAsynchronously(new BukkitRunnable() {
+            @Override
+            public void run() {
+                runnable.run();
+            }
+        });
+    }
+
+    public BukkitTask runTaskAsynchronously(BukkitRunnable bukkitRunnable) {
+        return bukkitRunnable.runTaskAsynchronously(NashornBukkit.getInstance());
+    }
+
+    public BukkitTask runTaskLater(Runnable runnable, long delay) {
+        return runTaskLater(new BukkitRunnable() {
+            @Override
+            public void run() {
+                runnable.run();
+            }
+        }, delay);
+    }
+
+    public BukkitTask runTaskLater(BukkitRunnable bukkitRunnable, long delay) {
+        return bukkitRunnable.runTaskLater(NashornBukkit.getInstance(), delay);
+    }
+
+    public BukkitTask runTaskLaterAsynchronously(Runnable runnable, long delay) {
+        return runTaskLaterAsynchronously(new BukkitRunnable() {
+            @Override
+            public void run() {
+                runnable.run();
+            }
+        }, delay);
+    }
+
+    public BukkitTask runTaskLaterAsynchronously(BukkitRunnable bukkitRunnable, long delay) {
+        return bukkitRunnable.runTaskLaterAsynchronously(NashornBukkit.getInstance(), delay);
+    }
+
+    public BukkitTask runTaskTimer(Runnable runnable, long delay, long period) {
+        return runTaskTimer(new BukkitRunnable() {
+            @Override
+            public void run() {
+                runnable.run();
+            }
+        }, delay, period);
+    }
+
+    public BukkitTask runTaskTimer(BukkitRunnable bukkitRunnable, long delay, long period) {
+        return bukkitRunnable.runTaskTimer(NashornBukkit.getInstance(), delay, period);
+    }
+
+    public BukkitTask runTaskTimerAsynchronously(Runnable runnable, long delay, long period) {
+        return runTaskTimerAsynchronously(new BukkitRunnable() {
+            @Override
+            public void run() {
+                runnable.run();
+            }
+        }, delay, period);
+    }
+
+    public BukkitTask runTaskTimerAsynchronously(BukkitRunnable bukkitRunnable, long delay, long period) {
+        return bukkitRunnable.runTaskTimerAsynchronously(NashornBukkit.getInstance(), delay, period);
     }
 
     @Override
