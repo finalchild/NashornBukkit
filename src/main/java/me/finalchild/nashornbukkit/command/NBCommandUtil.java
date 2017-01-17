@@ -41,7 +41,7 @@ public class NBCommandUtil {
         try {
             commandMapField = server.getClass().getDeclaredField("commandMap");
         } catch (NoSuchFieldException e) {
-            throw new UnsupportedOperationException(); // TODO: Add a message.
+            throw new UnsupportedOperationException("commandMap reflection failed: NoSuchFieldException"); // TODO: Improve reflection performance.
         }
         commandMapField.setAccessible(true);
         CommandMap commandMap;
@@ -59,7 +59,7 @@ public class NBCommandUtil {
         try {
             commandMapField = server.getClass().getDeclaredField("commandMap");
         } catch (NoSuchFieldException e) {
-            throw new UnsupportedOperationException(); // TODO: Add a message.
+            throw new UnsupportedOperationException("commandMap reflection failed: NoSuchFieldException"); // TODO: Improve reflection performance.
         }
         commandMapField.setAccessible(true);
         CommandMap commandMap;
