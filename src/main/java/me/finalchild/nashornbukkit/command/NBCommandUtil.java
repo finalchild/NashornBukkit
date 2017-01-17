@@ -24,7 +24,7 @@
 
 package me.finalchild.nashornbukkit.command;
 
-import me.finalchild.nashornbukkit.NashornBukkit;
+import org.bukkit.Bukkit;
 import org.bukkit.Server;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandMap;
@@ -35,41 +35,28 @@ import java.util.function.BiFunction;
 
 public class NBCommandUtil {
 
+    private static CommandMap commandMap;
+
+    public static CommandMap getCommandMap() {
+        if (commandMap == null) {
+            try {
+                Server server = Bukkit.getServer();
+                Field commandMapField;
+                commandMapField = server.getClass().getDeclaredField("commandMap");
+                commandMapField.setAccessible(true);
+                commandMap = (CommandMap) commandMapField.get(server);
+            } catch (Throwable t) {
+                throw new UnsupportedOperationException("commandMap reflection failed.", t);
+            }
+        }
+        return commandMap;
+    }
+
     public static boolean register(String name, Command command) {
-        Server server = NashornBukkit.getInstance().getServer();
-        Field commandMapField;
-        try {
-            commandMapField = server.getClass().getDeclaredField("commandMap");
-        } catch (NoSuchFieldException e) {
-            throw new UnsupportedOperationException(); // TODO: Add a message.
-        }
-        commandMapField.setAccessible(true);
-        CommandMap commandMap;
-        try {
-            commandMap = (CommandMap) commandMapField.get(server);
-        } catch (IllegalAccessException e) {
-            throw new UnsupportedOperationException();
-        }
-        return commandMap.register(name, command);
+        return getCommandMap().register(name, command);
     }
 
     public static boolean register(String name, BiFunction<CommandSender, String[], Boolean> command) {
-        Server server = NashornBukkit.getInstance().getServer();
-        Field commandMapField;
-        try {
-            commandMapField = server.getClass().getDeclaredField("commandMap");
-        } catch (NoSuchFieldException e) {
-            throw new UnsupportedOperationException(); // TODO: Add a message.
-        }
-        commandMapField.setAccessible(true);
-        CommandMap commandMap;
-        try {
-            commandMap = (CommandMap) commandMapField.get(server);
-        } catch (IllegalAccessException e) {
-            throw new UnsupportedOperationException();
-        }
-        return commandMap.register(name, new NBCommand(name, command));
+        return getCommandMap().register(name, new NBCommand(name, command));
     }
-
-
 }
