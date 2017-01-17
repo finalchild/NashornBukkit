@@ -29,6 +29,7 @@ import jdk.nashorn.api.scripting.JSObject;
 import me.finalchild.nashornbukkit.NashornBukkit;
 import me.finalchild.nashornbukkit.command.NBCommandUtil;
 import me.finalchild.nashornbukkit.util.ScriptExceptionLogger;
+import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.event.Event;
@@ -72,7 +73,7 @@ public class Script {
         String fileName = file.getFileName().toString();
         id = fileName.substring(0, fileName.length() - 3);
         Logger logger = Logger.getLogger(getId(), null);
-        logger.setParent(NashornBukkit.getInstance().getServer().getLogger());
+        logger.setParent(Bukkit.getServer().getLogger());
         logger.setLevel(Level.ALL);
         this.logger = logger;
 

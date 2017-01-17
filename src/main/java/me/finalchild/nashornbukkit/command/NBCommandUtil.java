@@ -24,7 +24,6 @@
 
 package me.finalchild.nashornbukkit.command;
 
-import me.finalchild.nashornbukkit.NashornBukkit;
 import org.bukkit.Bukkit;
 import org.bukkit.Server;
 import org.bukkit.command.Command;
