@@ -9,29 +9,29 @@ Function.prototype.on = function(event, eventPriority) {
 }
 
 Function.prototype.onCommand = function(name) {
-  script.onCommand(name, this);
+  return script.onCommand(name, this);
 }
 
 Function.prototype.runTask = function() {
-  script.runTask(this);
+  return script.runTask(this);
 }
 
 Function.prototype.runTaskAsynchronously = function() {
-  script.runTaskAsynchronously(this);
+  return script.runTaskAsynchronously(this);
 }
 
 Function.prototype.runTaskLater = function(delay) {
-  script.runTaskLater(this, delay);
+  return script.runTaskLater(this, delay);
 }
 
 Function.prototype.runTaskLaterAsynchronously = function(delay) {
-  script.runTaskLaterAsynchronously(this, delay);
+  return script.runTaskLaterAsynchronously(this, delay);
 }
 
 Function.prototype.runTaskTimer = function(delay, period) {
-  script.runTaskTimer(this, delay, period);
+  return script.runTaskTimer(this, delay, period);
 }
 
 Function.prototype.runTaskTimerAsynchronously = function(delay, period) {
-  script.runTaskTimerAsynchronously(this, delay, period);
+  return script.runTaskTimerAsynchronously(this, delay, period);
 }
