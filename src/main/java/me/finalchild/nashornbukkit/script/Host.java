@@ -45,11 +45,9 @@ public class Host {
     private NashornScriptEngine engine;
     private Map<String, Extension> loadedExtensions = new HashMap<>();
     private Map<String, Script> loadedScripts = new HashMap<>();
-    private BukkitImporter importer;
 
     public Host() {
         engine = (NashornScriptEngine) new NashornScriptEngineFactory().getScriptEngine(/*new String[] {"-scripting"}, */NashornBukkit.class.getClassLoader());
-        importer = new BukkitImporter();
     }
 
     public void loadExtensions(Path directory) {
@@ -136,10 +134,6 @@ public class Host {
 
     public Map<String, Script> getScripts(String id) {
         return loadedScripts;
-    }
-
-    public BukkitImporter getImporter() {
-        return importer;
     }
 
     public void onDisable() {
