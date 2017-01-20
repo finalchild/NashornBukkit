@@ -20,7 +20,15 @@ Function.prototype.runTaskAsynchronously = function() {
   return script.runTaskAsynchronously(this);
 }
 
+Function.prototype.async = function() {
+  return script.runTaskAsynchronously(this);
+}
+
 Function.prototype.runTaskLater = function(delay) {
+  return script.runTaskLater(this, delay);
+}
+
+Function.prototype.later = function(delay) {
   return script.runTaskLater(this, delay);
 }
 
@@ -28,10 +36,22 @@ Function.prototype.runTaskLaterAsynchronously = function(delay) {
   return script.runTaskLaterAsynchronously(this, delay);
 }
 
+Function.prototype.laterAsync = function(delay) {
+  return script.runTaskLaterAsynchronously(this, delay);
+}
+
 Function.prototype.runTaskTimer = function(delay, period) {
   return script.runTaskTimer(this, delay, period);
 }
 
+Function.prototype.timer = function(delay, period) {
+  return script.runTaskTimer(this, delay, period);
+}
+
 Function.prototype.runTaskTimerAsynchronously = function(delay, period) {
+  return script.runTaskTimerAsynchronously(this, delay, period);
+}
+
+Function.prototype.timerAsync = function(delay, period) {
   return script.runTaskTimerAsynchronously(this, delay, period);
 }
