@@ -27,7 +27,7 @@ package me.finalchild.nashornbukkit.script;
 import jdk.internal.dynalink.beans.StaticClass;
 import jdk.nashorn.api.scripting.JSObject;
 import me.finalchild.nashornbukkit.NashornBukkit;
-import me.finalchild.nashornbukkit.command.NBCommandUtil;
+import me.finalchild.nashornbukkit.util.CommandUtil;
 import me.finalchild.nashornbukkit.util.ScriptExceptionLogger;
 import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
@@ -215,7 +215,7 @@ public class Script {
     }
 
     public void onCommand(String name, Command command) {
-        NBCommandUtil.register(name, command);
+        CommandUtil.register(name, command);
     }
 
     public BukkitTask runTask(Runnable runnable) {
