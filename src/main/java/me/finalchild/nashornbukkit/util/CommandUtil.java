@@ -22,18 +22,16 @@
  * THE SOFTWARE.
  */
 
-package me.finalchild.nashornbukkit.command;
+package me.finalchild.nashornbukkit.util;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Server;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandMap;
-import org.bukkit.command.CommandSender;
 
 import java.lang.reflect.Field;
-import java.util.function.BiFunction;
 
-public class NBCommandUtil {
+public class CommandUtil {
 
     private static CommandMap commandMap;
 
@@ -54,9 +52,5 @@ public class NBCommandUtil {
 
     public static boolean register(String name, Command command) {
         return getCommandMap().register(name, command);
-    }
-
-    public static boolean register(String name, BiFunction<CommandSender, String[], Boolean> command) {
-        return getCommandMap().register(name, new NBCommand(name, command));
     }
 }

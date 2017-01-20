@@ -53,14 +53,14 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 public class BukkitImporter {
-    private boolean caching;
-    private Map<String, ClassPath.ClassInfo> typesCache;
+    private static boolean caching;
+    private static Map<String, ClassPath.ClassInfo> typesCache;
 
-    public Map<String, ClassPath.ClassInfo> getTypes() {
+    public static Map<String, ClassPath.ClassInfo> getTypes() {
         return getTypes(caching);
     }
 
-    public Map<String, ClassPath.ClassInfo> getTypes(boolean cache) {
+    public static Map<String, ClassPath.ClassInfo> getTypes(boolean cache) {
         if (typesCache != null) {
             return typesCache;
         }
@@ -87,32 +87,32 @@ public class BukkitImporter {
         return Collections.unmodifiableMap(types);
     }
 
-    public void setCaching(boolean caching) {
+    public static void setCaching(boolean caching) {
         if (!caching) {
             typesCache = null;
         }
-        this.caching = caching;
+        BukkitImporter.caching = caching;
     }
 
-    public void importBukkit(Script script) throws ScriptException, IOException {
+    public static void importBukkit(Script script) throws IOException {
         Bindings bindings = script.getContext().getBindings(ScriptContext.ENGINE_SCOPE);
         Map<String, ClassPath.ClassInfo> types = getTypes();
 
         Set<String> usedIdentifiers = getUsedIdentifiers(script.getFile());
         usedIdentifiers.stream()
-                .filter(e -> Character.isUpperCase(e.charAt(0)))
+                .filter(identifier -> Character.isUpperCase(identifier.charAt(0)))
                 .filter(types::containsKey)
-                .forEach(e -> {
-                    ClassPath.ClassInfo type = types.get(e);
+                .forEach(identifier -> {
+                    ClassPath.ClassInfo type = types.get(identifier);
                     try {
-                        bindings.put(e, script.getHost().getEngine().eval("Java.type(\"" + type.getName() + "\")", script.getContext()));
-                    } catch (ScriptException e1) {
-                        e1.printStackTrace();
+                        bindings.put(identifier, script.getHost().getEngine().eval("Java.type(\"" + type.getName() + "\")", script.getContext()));
+                    } catch (ScriptException e) {
+                        e.printStackTrace();
                     }
                 });
     }
 
-    public void importBukkit(Script script, Extension extension) throws ScriptException, IOException {
+    public static void importBukkit(Script script, Extension extension) throws IOException {
         Bindings bindings = script.getContext().getBindings(ScriptContext.ENGINE_SCOPE);
         Map<String, ClassPath.ClassInfo> types = getTypes();
 
@@ -130,7 +130,7 @@ public class BukkitImporter {
                 });
     }
 
-    public Set<String> getUsedIdentifiers(Path file) throws IOException {
+    public static Set<String> getUsedIdentifiers(Path file) throws IOException {
         Set<String> result = new HashSet<>();
         String text = new String(Files.readAllBytes(file), StandardCharsets.UTF_8);
         String json;
@@ -148,7 +148,7 @@ public class BukkitImporter {
         return result;
     }
 
-    private void addUsedIdentifiers(JsonObject obj, Set<String> set) {
+    private static void addUsedIdentifiers(JsonObject obj, Set<String> set) {
         if (obj.has("type")) {
             String type = obj.getAsJsonPrimitive("type").getAsString();
             if (type.equals("Identifier")) {
@@ -165,7 +165,7 @@ public class BukkitImporter {
         }
     }
 
-    private void addUsedIdentifiers(JsonArray arr, Set<String> set) {
+    private static void addUsedIdentifiers(JsonArray arr, Set<String> set) {
         for (JsonElement element : arr) {
             if (element.isJsonObject()) {
                 addUsedIdentifiers(element.getAsJsonObject(), set);
