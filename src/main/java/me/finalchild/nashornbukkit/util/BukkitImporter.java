@@ -35,8 +35,8 @@ import jdk.nashorn.internal.runtime.Context;
 import jdk.nashorn.internal.runtime.ErrorManager;
 import jdk.nashorn.internal.runtime.options.Options;
 import me.finalchild.nashornbukkit.NashornBukkit;
-import me.finalchild.nashornbukkit.script.Extension;
-import me.finalchild.nashornbukkit.script.Script;
+import me.finalchild.nashornbukkit.script.nbscript.NBExtension;
+import me.finalchild.nashornbukkit.script.nbscript.NBScript;
 
 import javax.script.Bindings;
 import javax.script.ScriptContext;
@@ -52,7 +52,11 @@ import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-public class BukkitImporter {
+public final class BukkitImporter {
+
+    private BukkitImporter() {
+    }
+
     private static boolean caching;
     private static Map<String, ClassPath.ClassInfo> typesCache;
 
@@ -74,12 +78,12 @@ public class BukkitImporter {
         }
         ImmutableSet<ClassPath.ClassInfo> result = classpath.getTopLevelClassesRecursive("org.bukkit");
         Map<String, ClassPath.ClassInfo> types = result.stream()
-                    .filter(e -> !(e.getName().startsWith("org.bukkit.craftbukkit")))
-                    .filter(e -> !(e.getSimpleName().equals("package-info")))
-                    .collect(Collectors.toMap(ClassPath.ClassInfo::getSimpleName, Function.identity(), (a, b) -> {
-                        NashornBukkit.getInstance().getLogger().info("Duplicate class name: " + a.getName() + " and " + b.getName());
-                        return a;
-                    }));
+                .filter(e -> !(e.getName().startsWith("org.bukkit.craftbukkit")))
+                .filter(e -> !(e.getSimpleName().equals("package-info")))
+                .collect(Collectors.toMap(ClassPath.ClassInfo::getSimpleName, Function.identity(), (a, b) -> {
+                    NashornBukkit.getInstance().getLogger().info("Duplicate class name: " + a.getName() + " and " + b.getName());
+                    return a;
+                }));
 
         if (cache) {
             typesCache = types;
@@ -94,7 +98,7 @@ public class BukkitImporter {
         BukkitImporter.caching = caching;
     }
 
-    public static void importBukkit(Script script) throws IOException {
+    public static void importBukkit(NBScript script) throws IOException {
         Bindings bindings = script.getContext().getBindings(ScriptContext.ENGINE_SCOPE);
         Map<String, ClassPath.ClassInfo> types = getTypes();
 
@@ -105,14 +109,14 @@ public class BukkitImporter {
                 .forEach(identifier -> {
                     ClassPath.ClassInfo type = types.get(identifier);
                     try {
-                        bindings.put(identifier, script.getHost().getEngine().eval("Java.type(\"" + type.getName() + "\")", script.getContext()));
+                        bindings.put(identifier, script.getEngine().eval("Java.type(\"" + type.getName() + "\")", script.getContext()));
                     } catch (ScriptException e) {
                         e.printStackTrace();
                     }
                 });
     }
 
-    public static void importBukkit(Script script, Extension extension) throws IOException {
+    public static void importBukkit(NBScript script, NBExtension extension) throws IOException {
         Bindings bindings = script.getContext().getBindings(ScriptContext.ENGINE_SCOPE);
         Map<String, ClassPath.ClassInfo> types = getTypes();
 
@@ -123,7 +127,7 @@ public class BukkitImporter {
                 .forEach(e -> {
                     ClassPath.ClassInfo type = types.get(e);
                     try {
-                        bindings.put(e, script.getHost().getEngine().eval("Java.type(\"" + type.getName() + "\")", script.getContext()));
+                        bindings.put(e, script.getEngine().eval("Java.type(\"" + type.getName() + "\")", script.getContext()));
                     } catch (ScriptException e1) {
                         e1.printStackTrace();
                     }
@@ -174,4 +178,5 @@ public class BukkitImporter {
             }
         }
     }
+
 }

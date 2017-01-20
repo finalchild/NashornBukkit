@@ -25,18 +25,18 @@
 package me.finalchild.nashornbukkit;
 
 import me.finalchild.nashornbukkit.script.Host;
+import me.finalchild.nashornbukkit.script.nbscript.NBExtensionLoader;
+import me.finalchild.nashornbukkit.script.nbscript.NBScriptLoader;
+import me.finalchild.nashornbukkit.util.BukkitImporter;
 import org.bukkit.plugin.java.JavaPlugin;
 
-public class NashornBukkit extends JavaPlugin {
+import java.util.Collections;
+
+public final class NashornBukkit extends JavaPlugin {
 
     private static NashornBukkit instance;
 
     private Host host;
-
-    public NashornBukkit() {
-        instance = this;
-        host = new Host();
-    }
 
     public static NashornBukkit getInstance() {
         return instance;
@@ -44,11 +44,19 @@ public class NashornBukkit extends JavaPlugin {
 
     @Override
     public void onEnable() {
+        instance = this;
+        host = new Host();
+
         saveResource("extensions/finally.js", true);
+        BukkitImporter.setCaching(true);
+        getHost().addScriptLoader(new NBScriptLoader(), Collections.singleton("js"));
+        getHost().addExtensionLoader(new NBExtensionLoader(), Collections.singleton("js"));
 
         getHost().loadExtensions(getDataFolder().toPath().resolve("extensions"));
         getHost().loadScripts(getDataFolder().toPath());
         getHost().evalScripts();
+
+        BukkitImporter.setCaching(false);
     }
 
     @Override
@@ -59,4 +67,5 @@ public class NashornBukkit extends JavaPlugin {
     public Host getHost() {
         return host;
     }
+
 }

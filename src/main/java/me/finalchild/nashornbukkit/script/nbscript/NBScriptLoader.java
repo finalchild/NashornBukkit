@@ -22,26 +22,24 @@
  * THE SOFTWARE.
  */
 
-package me.finalchild.nashornbukkit.util;
+package me.finalchild.nashornbukkit.script.nbscript;
 
-import jdk.nashorn.api.scripting.NashornException;
+import jdk.nashorn.api.scripting.NashornScriptEngine;
+import jdk.nashorn.api.scripting.NashornScriptEngineFactory;
 import me.finalchild.nashornbukkit.NashornBukkit;
+import me.finalchild.nashornbukkit.script.Host;
+import me.finalchild.nashornbukkit.script.Script;
+import me.finalchild.nashornbukkit.script.ScriptLoader;
 
-import javax.script.ScriptException;
+import java.nio.file.Path;
 
-public final class ScriptExceptionLogger {
+public final class NBScriptLoader implements ScriptLoader {
 
-    private ScriptExceptionLogger() {
-    }
+    private NashornScriptEngine engine = (NashornScriptEngine) new NashornScriptEngineFactory().getScriptEngine(/*new String[] {"-scripting"}, */NashornBukkit.class.getClassLoader());
 
-    public static void log(ScriptException e) {
-        if (e.getCause() instanceof NashornException) {
-            NashornException cause = (NashornException) e.getCause();
-            NashornBukkit.getInstance().getLogger().severe(e.getMessage());
-            NashornBukkit.getInstance().getLogger().severe(NashornException.getScriptStackString(cause));
-        } else {
-            e.printStackTrace();
-        }
+    @Override
+    public Script loadScript(Path file, Host host) {
+        return new NBScript(file, host, engine);
     }
 
 }

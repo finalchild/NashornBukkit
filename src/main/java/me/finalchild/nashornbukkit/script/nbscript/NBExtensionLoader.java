@@ -22,26 +22,18 @@
  * THE SOFTWARE.
  */
 
-package me.finalchild.nashornbukkit.util;
+package me.finalchild.nashornbukkit.script.nbscript;
 
-import jdk.nashorn.api.scripting.NashornException;
-import me.finalchild.nashornbukkit.NashornBukkit;
+import me.finalchild.nashornbukkit.script.ExtensionLoader;
+import me.finalchild.nashornbukkit.script.Host;
 
-import javax.script.ScriptException;
+import java.nio.file.Path;
 
-public final class ScriptExceptionLogger {
+public final class NBExtensionLoader implements ExtensionLoader {
 
-    private ScriptExceptionLogger() {
-    }
-
-    public static void log(ScriptException e) {
-        if (e.getCause() instanceof NashornException) {
-            NashornException cause = (NashornException) e.getCause();
-            NashornBukkit.getInstance().getLogger().severe(e.getMessage());
-            NashornBukkit.getInstance().getLogger().severe(NashornException.getScriptStackString(cause));
-        } else {
-            e.printStackTrace();
-        }
+    @Override
+    public NBExtension loadExtension(Path file, Host host) {
+        return new NBExtension(file, host);
     }
 
 }

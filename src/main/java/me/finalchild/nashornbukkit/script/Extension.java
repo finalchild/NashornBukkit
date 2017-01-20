@@ -24,36 +24,12 @@
 
 package me.finalchild.nashornbukkit.script;
 
-import java.nio.file.Path;
+public interface Extension<T extends Script> {
 
-public class Extension {
-    private Host host;
-    private Path file;
+    void apply(T script);
 
-    private String id;
+    Host getHost();
 
-    public Extension(Host host, Path file) {
-        this.host = host;
-        this.file = file;
+    String getId();
 
-        String fileName = file.getFileName().toString();
-        id = fileName.substring(0, fileName.length() - 3);
-    }
-
-    public Host getHost() {
-        return host;
-    }
-
-    public Path getFile() {
-        return file;
-    }
-
-    public String getId() {
-        return id;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        return o instanceof Extension && getFile().equals(((Extension) o).getFile());
-    }
 }

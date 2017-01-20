@@ -22,26 +22,13 @@
  * THE SOFTWARE.
  */
 
-package me.finalchild.nashornbukkit.util;
+package me.finalchild.nashornbukkit.script;
 
-import jdk.nashorn.api.scripting.NashornException;
-import me.finalchild.nashornbukkit.NashornBukkit;
+import java.nio.file.Path;
 
-import javax.script.ScriptException;
+@FunctionalInterface
+public interface ScriptLoader {
 
-public final class ScriptExceptionLogger {
-
-    private ScriptExceptionLogger() {
-    }
-
-    public static void log(ScriptException e) {
-        if (e.getCause() instanceof NashornException) {
-            NashornException cause = (NashornException) e.getCause();
-            NashornBukkit.getInstance().getLogger().severe(e.getMessage());
-            NashornBukkit.getInstance().getLogger().severe(NashornException.getScriptStackString(cause));
-        } else {
-            e.printStackTrace();
-        }
-    }
+    Script loadScript(Path file, Host host);
 
 }

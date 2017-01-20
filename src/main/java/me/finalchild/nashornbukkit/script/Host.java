@@ -24,31 +24,19 @@
 
 package me.finalchild.nashornbukkit.script;
 
-import jdk.nashorn.api.scripting.NashornScriptEngine;
-import jdk.nashorn.api.scripting.NashornScriptEngineFactory;
-import me.finalchild.nashornbukkit.NashornBukkit;
-import me.finalchild.nashornbukkit.util.BukkitImporter;
-import me.finalchild.nashornbukkit.util.ScriptExceptionLogger;
-
-import javax.script.ScriptEngine;
-import javax.script.ScriptException;
 import java.io.IOException;
 import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 
-public class Host {
+public final class Host {
 
-    private NashornScriptEngine engine;
-    private Map<String, Extension> loadedExtensions = new HashMap<>();
-    private Map<String, Script> loadedScripts = new HashMap<>();
+    private final Map<String, Extension> loadedExtensions = new HashMap<>();
+    private final Map<String, Script> loadedScripts = new HashMap<>();
 
-    public Host() {
-        engine = (NashornScriptEngine) new NashornScriptEngineFactory().getScriptEngine(/*new String[] {"-scripting"}, */NashornBukkit.class.getClassLoader());
-    }
+    private final Map<String, ScriptLoader> scriptLoaders = new HashMap<>();
+    private final Map<String, ExtensionLoader> extensionLoaders = new HashMap<>();
 
     public void loadExtensions(Path directory) {
         if (!Files.exists(directory)) {
@@ -59,13 +47,29 @@ public class Host {
                 return;
             }
         }
-        try (DirectoryStream<Path> stream = Files.newDirectoryStream(directory, "*.js")) {
+        try (DirectoryStream<Path> stream = Files.newDirectoryStream(directory)) {
             for (Path file : stream) {
-                loadExtension(file);
+                if (!Files.isDirectory(file)) {
+                    loadExtension(file);
+                }
             }
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    private Extension loadExtension(Path file) {
+        return loadExtension(getExtensionLoader(file)
+                .orElseThrow(() -> new UnsupportedOperationException("Could not find a ExtensionLoader for the file: " + file.getFileName().toString()))
+                .loadExtension(file, this));
+    }
+
+    public Extension loadExtension(Extension extension) {
+        if (loadedExtensions.containsKey(extension.getId())) {
+            throw new UnsupportedOperationException("Duplicate extension id: " + extension.getId());
+        }
+        loadedExtensions.put(extension.getId(), extension);
+        return extension;
     }
 
     public void loadScripts(Path directory) {
@@ -77,12 +81,10 @@ public class Host {
                 return;
             }
         }
-        try (DirectoryStream<Path> stream = Files.newDirectoryStream(directory, "*.js")) {
+        try (DirectoryStream<Path> stream = Files.newDirectoryStream(directory)) {
             for (Path file : stream) {
-                try {
+                if (!Files.isDirectory(file)) {
                     loadScript(file);
-                } catch (ScriptException e) {
-                    ScriptExceptionLogger.log(e);
                 }
             }
         } catch (IOException e) {
@@ -90,53 +92,76 @@ public class Host {
         }
     }
 
-    public void evalScripts() {
-        BukkitImporter.setCaching(true);
+    public Script loadScript(Path file) {
+        return loadScript(getScriptLoader(file)
+                .orElseThrow(() -> new UnsupportedOperationException("Could not find a ScriptLoader for the file: " + file.getFileName().toString()))
+                .loadScript(file, this));
+    }
 
-        for (Script loadedScript : loadedScripts.values()) {
-            try {
-                loadedScript.eval();
-            } catch (IOException e) {
-                e.printStackTrace();
-            } catch (ScriptException e) {
-                ScriptExceptionLogger.log(e);
-            }
+    public Script loadScript(Script script) {
+        if (loadedScripts.containsKey(script.getId())) {
+            throw new UnsupportedOperationException("Duplicate script id: " + script.getId());
         }
-
-        BukkitImporter.setCaching(false);
-    }
-
-    private void loadExtension(Path file) {
-        Extension extension = new Extension(this, file);
-        loadedExtensions.put(extension.getId(), extension);
-    }
-
-    public void loadScript(Path file) throws IOException, ScriptException {
-        Script script = new Script(this, file);
         loadedScripts.put(script.getId(), script);
+        return script;
     }
 
-    public ScriptEngine getEngine() {
-        return engine;
+    public void evalScripts() {
+        for (Script loadedScript : loadedScripts.values()) {
+            loadedScript.eval();
+        }
+    }
+
+    public Map<String, Extension> getExtensions() {
+        return Collections.unmodifiableMap(loadedExtensions);
     }
 
     public Optional<Extension> getExtension(String id) {
         return Optional.ofNullable(loadedExtensions.get(id));
     }
 
-    public Map<String, Extension> getExtensions() {
-        return loadedExtensions;
+    public Map<String, Script> getScripts(String id) {
+        return Collections.unmodifiableMap(loadedScripts);
     }
 
     public Optional<Script> getScript(String id) {
         return Optional.ofNullable(loadedScripts.get(id));
     }
 
-    public Map<String, Script> getScripts(String id) {
-        return loadedScripts;
-    }
-
     public void onDisable() {
         loadedScripts.values().forEach(Script::disable);
     }
+
+    public Map<String, ScriptLoader> getScriptLoaders() {
+        return Collections.unmodifiableMap(scriptLoaders);
+    }
+
+    public Optional<ScriptLoader> getScriptLoader(Path file) {
+        return getScriptLoader(com.google.common.io.Files.getFileExtension(file.toString()));
+    }
+
+    public Optional<ScriptLoader> getScriptLoader(String fileExtension) {
+        return Optional.ofNullable(scriptLoaders.get(fileExtension));
+    }
+
+    public void addScriptLoader(ScriptLoader loader, Set<String> fileExtensions) {
+        fileExtensions.forEach((fileExtension) -> scriptLoaders.put(fileExtension, loader));
+    }
+
+    public Map<String, ExtensionLoader> getExtensionLoaders() {
+        return Collections.unmodifiableMap(extensionLoaders);
+    }
+
+    public Optional<ExtensionLoader> getExtensionLoader(Path file) {
+        return getExtensionLoader(com.google.common.io.Files.getFileExtension(file.toString()));
+    }
+
+    public Optional<ExtensionLoader> getExtensionLoader(String fileExtension) {
+        return Optional.ofNullable(extensionLoaders.get(fileExtension));
+    }
+
+    public void addExtensionLoader(ExtensionLoader loader, Set<String> fileExtensions) {
+        fileExtensions.forEach((fileExtension) -> extensionLoaders.put(fileExtension, loader));
+    }
+
 }

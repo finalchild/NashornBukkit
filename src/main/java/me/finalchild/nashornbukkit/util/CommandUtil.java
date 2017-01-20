@@ -31,7 +31,10 @@ import org.bukkit.command.CommandMap;
 
 import java.lang.reflect.Field;
 
-public class CommandUtil {
+public final class CommandUtil {
+
+    private CommandUtil() {
+    }
 
     private static CommandMap commandMap;
 
@@ -53,4 +56,5 @@ public class CommandUtil {
     public static boolean register(String name, Command command) {
         return getCommandMap().register(name, command);
     }
+
 }
