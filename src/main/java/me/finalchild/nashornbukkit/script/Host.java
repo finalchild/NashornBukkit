@@ -93,7 +93,7 @@ public class Host {
     }
 
     public void evalScripts() {
-        getImporter().setCaching(true);
+        BukkitImporter.setCaching(true);
 
         for (Script loadedScript : loadedScripts.values()) {
             try {
@@ -105,7 +105,7 @@ public class Host {
             }
         }
 
-        getImporter().setCaching(false);
+        BukkitImporter.setCaching(false);
     }
 
     private void loadExtension(Path file) {

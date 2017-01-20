@@ -27,6 +27,7 @@ package me.finalchild.nashornbukkit.script;
 import jdk.internal.dynalink.beans.StaticClass;
 import jdk.nashorn.api.scripting.JSObject;
 import me.finalchild.nashornbukkit.NashornBukkit;
+import me.finalchild.nashornbukkit.util.BukkitImporter;
 import me.finalchild.nashornbukkit.util.CommandUtil;
 import me.finalchild.nashornbukkit.util.ScriptExceptionLogger;
 import org.bukkit.Bukkit;
@@ -66,7 +67,7 @@ public class Script {
 
     private Listener listener;
 
-    public Script(Host host, Path file) throws ScriptException, IOException {
+    public Script(Host host, Path file) throws ScriptException {
         this.host = host;
         this.file = file;
 
@@ -104,7 +105,7 @@ public class Script {
     public Object eval() throws IOException, ScriptException {
         require("finally");
 
-        getHost().getImporter().importBukkit(this);
+        BukkitImporter.importBukkit(this);
 
         Bindings bindings = getContext().getBindings(ScriptContext.ENGINE_SCOPE);
         BufferedReader br2 = Files.newBufferedReader(getFile());
@@ -149,7 +150,7 @@ public class Script {
 
         extensionsBeingInstalled.put(extension.getId(), extension);
 
-        getHost().getImporter().importBukkit(this, extension);
+        BukkitImporter.importBukkit(this, extension);
 
         Bindings bindings = getContext().getBindings(ScriptContext.ENGINE_SCOPE);
         bindings.put(ScriptEngine.FILENAME, extension.getFile().getFileName());
