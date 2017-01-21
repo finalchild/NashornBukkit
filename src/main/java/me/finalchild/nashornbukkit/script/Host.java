@@ -24,6 +24,9 @@
 
 package me.finalchild.nashornbukkit.script;
 
+import jdk.nashorn.api.scripting.NashornScriptEngine;
+import me.finalchild.nashornbukkit.NashornBukkit;
+
 import java.io.IOException;
 import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
@@ -50,7 +53,11 @@ public final class Host {
         try (DirectoryStream<Path> stream = Files.newDirectoryStream(directory)) {
             for (Path file : stream) {
                 if (!Files.isDirectory(file)) {
-                    loadExtension(file);
+                    try {
+                        loadExtension(file);
+                    } catch (Throwable t) {
+                        NashornBukkit.getInstance().getLogger().severe("Failed to load a file as a extension: " + file.getFileName());
+                    }
                 }
             }
         } catch (IOException e) {
@@ -84,7 +91,11 @@ public final class Host {
         try (DirectoryStream<Path> stream = Files.newDirectoryStream(directory)) {
             for (Path file : stream) {
                 if (!Files.isDirectory(file)) {
-                    loadScript(file);
+                    try {
+                        loadScript(file);
+                    } catch (Throwable t) {
+                        NashornBukkit.getInstance().getLogger().severe("Failed to load a file as a script: " + file.getFileName());
+                    }
                 }
             }
         } catch (IOException e) {
@@ -108,7 +119,11 @@ public final class Host {
 
     public void evalScripts() {
         for (Script loadedScript : loadedScripts.values()) {
-            loadedScript.eval();
+            try {
+                loadedScript.eval();
+            } catch (Throwable t) {
+                NashornBukkit.getInstance().getLogger().severe("Failed to run a script: " + loadedScript.getId());
+            }
         }
     }
 
