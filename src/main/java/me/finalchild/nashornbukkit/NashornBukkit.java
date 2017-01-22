@@ -29,6 +29,7 @@ import me.finalchild.nashornbukkit.script.nbscript.NBModuleLoader;
 import me.finalchild.nashornbukkit.script.nbscript.NBScriptLoader;
 import me.finalchild.nashornbukkit.util.BukkitImporter;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.scheduler.BukkitRunnable;
 
 import java.util.Collections;
 
@@ -49,14 +50,20 @@ public final class NashornBukkit extends JavaPlugin {
 
         saveResource("modules/finally.js", true);
         BukkitImporter.setCaching(true);
-        getHost().addScriptLoader(new NBScriptLoader(), Collections.singleton("js"));
+
         getHost().addModuleLoader(new NBModuleLoader(), Collections.singleton("js"));
+        getHost().addScriptLoader(new NBScriptLoader(), Collections.singleton("js"));
 
         getHost().loadModules(getDataFolder().toPath().resolve("modules"));
         getHost().loadScripts(getDataFolder().toPath());
-        getHost().evalScripts();
 
-        BukkitImporter.setCaching(false);
+        new BukkitRunnable() {
+            @Override
+            public void run() {
+                getHost().evalScripts();
+                BukkitImporter.setCaching(false);
+            }
+        }.runTask(this);
     }
 
     @Override
