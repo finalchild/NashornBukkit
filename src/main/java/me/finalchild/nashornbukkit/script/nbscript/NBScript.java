@@ -24,6 +24,7 @@
 
 package me.finalchild.nashornbukkit.script.nbscript;
 
+import com.google.common.reflect.ClassPath;
 import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
 import jdk.internal.dynalink.beans.StaticClass;
@@ -171,6 +172,20 @@ public final class NBScript implements Script {
         } catch (ScriptException e) {
             ScriptExceptionLogger.log(e);
         }
+
+        bindings.entrySet().stream()
+                .filter(e -> e.getValue() instanceof JSObject)
+                .filter(e -> ((JSObject) e.getValue()).isFunction())
+                .filter(e -> e.getKey().startsWith("on"))
+                .forEach(e -> {
+                    ClassPath.ClassInfo classInfo = BukkitImporter.getTypes().get(e.getKey().substring(2, e.getKey().length()) + "Event");
+                    if (classInfo != null) {
+                        Class type = classInfo.load();
+                        if (Event.class.isAssignableFrom(type)) {
+                            on(type, event -> ((JSObject) e.getValue()).call(null, event));
+                        }
+                    }
+                });
     }
 
     @Override
