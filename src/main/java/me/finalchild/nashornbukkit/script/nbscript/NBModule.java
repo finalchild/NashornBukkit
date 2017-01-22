@@ -25,18 +25,11 @@
 package me.finalchild.nashornbukkit.script.nbscript;
 
 import jdk.nashorn.api.scripting.JSObject;
-import me.finalchild.nashornbukkit.script.Module;
 import me.finalchild.nashornbukkit.script.Host;
+import me.finalchild.nashornbukkit.script.Module;
 import me.finalchild.nashornbukkit.util.BukkitImporter;
-import me.finalchild.nashornbukkit.util.ScriptExceptionLogger;
 
-import javax.script.Bindings;
-import javax.script.ScriptContext;
-import javax.script.ScriptEngine;
-import javax.script.ScriptException;
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.nio.file.Files;
 import java.nio.file.Path;
 
 public final class NBModule implements Module<NBScript> {

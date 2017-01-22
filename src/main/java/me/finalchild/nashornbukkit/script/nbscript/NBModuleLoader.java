@@ -24,8 +24,8 @@
 
 package me.finalchild.nashornbukkit.script.nbscript;
 
-import me.finalchild.nashornbukkit.script.ModuleLoader;
 import me.finalchild.nashornbukkit.script.Host;
+import me.finalchild.nashornbukkit.script.ModuleLoader;
 
 import java.nio.file.Path;
 
