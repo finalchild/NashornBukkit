@@ -108,10 +108,12 @@ public final class BukkitImporter {
                 .filter(types::containsKey)
                 .forEach(identifier -> {
                     ClassPath.ClassInfo type = types.get(identifier);
-                    try {
-                        bindings.put(identifier, script.getEngine().eval("Java.type(\"" + type.getName() + "\")", script.getContext()));
-                    } catch (ScriptException e) {
-                        e.printStackTrace();
+                    if (!bindings.containsKey(identifier)) {
+                        try {
+                            bindings.put(identifier, script.getEngine().eval("Java.type(\"" + type.getName() + "\")", script.getContext()));
+                        } catch (ScriptException e) {
+                            e.printStackTrace();
+                        }
                     }
                 });
     }
