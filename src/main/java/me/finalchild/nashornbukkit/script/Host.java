@@ -137,7 +137,7 @@ public final class Host {
         return Optional.ofNullable(loadedModules.get(id));
     }
 
-    public Map<String, Script> getScripts(String id) {
+    public Map<String, Script> getScripts() {
         return Collections.unmodifiableMap(loadedScripts);
     }
 
