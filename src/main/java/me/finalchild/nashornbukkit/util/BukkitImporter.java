@@ -81,7 +81,7 @@ public final class BukkitImporter {
                 .filter(e -> !(e.getName().startsWith("org.bukkit.craftbukkit")))
                 .filter(e -> !(e.getSimpleName().equals("package-info")))
                 .collect(Collectors.toMap(ClassPath.ClassInfo::getSimpleName, Function.identity(), (a, b) -> {
-                    NashornBukkit.getInstance().getLogger().info("Duplicate class name: " + a.getName() + " and " + b.getName());
+                    // NashornBukkit.getInstance().getLogger().info("Duplicate class name: " + a.getName() + " and " + b.getName());
                     return a;
                 }));
 
