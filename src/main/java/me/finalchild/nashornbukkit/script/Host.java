@@ -25,6 +25,8 @@
 package me.finalchild.nashornbukkit.script;
 
 import me.finalchild.nashornbukkit.NashornBukkit;
+import org.bukkit.Bukkit;
+import org.bukkit.plugin.Plugin;
 
 import java.io.IOException;
 import java.nio.file.DirectoryStream;
@@ -72,8 +74,8 @@ public final class Host {
     }
 
     public Module loadModule(Module module) {
-        if (loadedModules.containsKey(module.getId())) {
-            throw new UnsupportedOperationException("Duplicate module id: " + module.getId());
+        if (isIdBeingUsed(module.getId())) {
+            throw new UnsupportedOperationException("Duplicate id: " + module.getId());
         }
         loadedModules.put(module.getId(), module);
         return module;
@@ -111,8 +113,8 @@ public final class Host {
     }
 
     public Script loadScript(Script script) {
-        if (loadedScripts.containsKey(script.getId())) {
-            throw new UnsupportedOperationException("Duplicate script id: " + script.getId());
+        if (isIdBeingUsed(script.getId())) {
+            throw new UnsupportedOperationException("Duplicate id: " + script.getId());
         }
         loadedScripts.put(script.getId(), script);
         return script;
@@ -179,6 +181,29 @@ public final class Host {
 
     public void addScriptLoader(ScriptLoader loader, Set<String> fileExtensions) {
         fileExtensions.forEach((fileExtension) -> scriptLoaders.put(fileExtension, loader));
+    }
+
+    public boolean isIdBeingUsed(String id) {
+        return Bukkit.getPluginManager().getPlugin(id) != null || getModules().containsKey(id) || getScripts().containsKey(id);
+    }
+
+    public Optional<Object> getById(String id) {
+        Plugin plugin = Bukkit.getPluginManager().getPlugin(id);
+        if (plugin != null) {
+            return Optional.of(plugin);
+        }
+
+        Optional<Module> optionalModule = getModule(id);
+        if (optionalModule.isPresent()) {
+            return Optional.of(optionalModule.get());
+        }
+
+        Optional<Script> optionalScript = getScript(id);
+        if (optionalScript.isPresent()) {
+            return Optional.of(optionalScript.get());
+        }
+
+        return Optional.empty();
     }
 
 }
