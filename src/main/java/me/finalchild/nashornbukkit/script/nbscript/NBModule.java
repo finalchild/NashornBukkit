@@ -24,26 +24,40 @@
 
 package me.finalchild.nashornbukkit.script.nbscript;
 
-import jdk.nashorn.api.scripting.JSObject;
+import jdk.nashorn.api.scripting.NashornScriptEngine;
 import me.finalchild.nashornbukkit.script.Host;
 import me.finalchild.nashornbukkit.script.Module;
 import me.finalchild.nashornbukkit.util.BukkitImporter;
+import me.finalchild.nashornbukkit.util.ScriptExceptionLogger;
 
+import javax.script.CompiledScript;
+import javax.script.ScriptContext;
+import javax.script.ScriptEngine;
+import javax.script.ScriptException;
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.nio.file.Path;
 
 public final class NBModule implements Module<NBScript> {
 
-    private Path file;
+    private final Path file;
 
-    private Host host;
-    private String id;
+    private final Host host;
+    private final String id;
 
-    public NBModule(Path file, Host host) {
+    private final CompiledScript compiledScript;
+
+    public NBModule(Path file, Host host, NashornScriptEngine engine) throws IOException, ScriptException {
         this.file = file;
         this.host = host;
 
         id = com.google.common.io.Files.getNameWithoutExtension(file.toString());
+
+        try (BufferedReader br = Files.newBufferedReader(file, StandardCharsets.UTF_8)) {
+            compiledScript = engine.compile(br);
+        }
     }
 
     @Override
@@ -54,8 +68,12 @@ public final class NBModule implements Module<NBScript> {
             e.printStackTrace();
         }
 
-        JSObject loadObj = (JSObject) script.getContext().getAttribute("load");
-        loadObj.call(null, getFile().toString());
+        try {
+            script.getContext().getBindings(ScriptContext.ENGINE_SCOPE).put(ScriptEngine.FILENAME, getFile().getFileName());
+            compiledScript.eval(script.getContext());
+        } catch (ScriptException e) {
+            ScriptExceptionLogger.log(e);
+        }
     }
 
     public Path getFile() {

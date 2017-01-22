@@ -25,21 +25,34 @@
 package me.finalchild.nashornbukkit.script.nbscript;
 
 import jdk.nashorn.api.scripting.NashornScriptEngine;
-import jdk.nashorn.api.scripting.NashornScriptEngineFactory;
-import me.finalchild.nashornbukkit.NashornBukkit;
 import me.finalchild.nashornbukkit.script.Host;
 import me.finalchild.nashornbukkit.script.Script;
 import me.finalchild.nashornbukkit.script.ScriptLoader;
+import me.finalchild.nashornbukkit.util.ScriptExceptionLogger;
 
+import javax.script.ScriptException;
+import java.io.IOException;
 import java.nio.file.Path;
 
 public final class NBScriptLoader implements ScriptLoader {
 
-    private NashornScriptEngine engine = (NashornScriptEngine) new NashornScriptEngineFactory().getScriptEngine(/*new String[] {"-scripting"}, */NashornBukkit.class.getClassLoader());
+    public NBScriptLoader(NashornScriptEngine engine) {
+        this.engine = engine;
+    }
+
+    private NashornScriptEngine engine;
 
     @Override
     public Script loadScript(Path file, Host host) {
-        return new NBScript(file, host, engine);
+        try {
+            return new NBScript(file, host, engine);
+        } catch (IOException e) {
+            e.printStackTrace();
+            return null;
+        } catch (ScriptException e) {
+            ScriptExceptionLogger.log(e);
+            return null;
+        }
     }
 
 }

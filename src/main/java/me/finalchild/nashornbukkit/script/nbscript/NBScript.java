@@ -83,7 +83,9 @@ public final class NBScript implements Script {
     private final Listener listener;
     private final Map<String, Object> config;
 
-    public NBScript(Path file, Host host, NashornScriptEngine engine) {
+    private final CompiledScript compiledScript;
+
+    public NBScript(Path file, Host host, NashornScriptEngine engine) throws IOException, ScriptException {
         this.file = file;
         this.host = host;
         this.engine = engine;
@@ -151,6 +153,10 @@ public final class NBScript implements Script {
             config1 = new HashMap<>();
         }
         config = config1;
+
+        try (BufferedReader br = Files.newBufferedReader(file, StandardCharsets.UTF_8)) {
+            compiledScript = getEngine().compile(br);
+        }
     }
 
     @Override
@@ -164,11 +170,9 @@ public final class NBScript implements Script {
         }
 
         Bindings bindings = getContext().getBindings(ScriptContext.ENGINE_SCOPE);
-        try (BufferedReader br = Files.newBufferedReader(getFile())) {
+        try {
             bindings.put(ScriptEngine.FILENAME, getFile().getFileName());
-            getEngine().eval(br, getContext());
-        } catch (IOException e) {
-            e.printStackTrace();
+            compiledScript.eval(getContext());
         } catch (ScriptException e) {
             ScriptExceptionLogger.log(e);
         }

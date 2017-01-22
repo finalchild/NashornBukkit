@@ -24,16 +24,34 @@
 
 package me.finalchild.nashornbukkit.script.nbscript;
 
+import jdk.nashorn.api.scripting.NashornScriptEngine;
 import me.finalchild.nashornbukkit.script.Host;
 import me.finalchild.nashornbukkit.script.ModuleLoader;
+import me.finalchild.nashornbukkit.util.ScriptExceptionLogger;
 
+import javax.script.ScriptException;
+import java.io.IOException;
 import java.nio.file.Path;
 
 public final class NBModuleLoader implements ModuleLoader {
 
+    private NashornScriptEngine engine;
+
+    public NBModuleLoader(NashornScriptEngine engine) {
+        this.engine = engine;
+    }
+
     @Override
     public NBModule loadModule(Path file, Host host) {
-        return new NBModule(file, host);
+        try {
+            return new NBModule(file, host, engine);
+        } catch (IOException e) {
+            e.printStackTrace();
+            return null;
+        } catch (ScriptException e) {
+            ScriptExceptionLogger.log(e);
+            return null;
+        }
     }
 
 }

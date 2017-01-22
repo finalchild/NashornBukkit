@@ -24,6 +24,8 @@
 
 package me.finalchild.nashornbukkit;
 
+import jdk.nashorn.api.scripting.NashornScriptEngine;
+import jdk.nashorn.api.scripting.NashornScriptEngineFactory;
 import me.finalchild.nashornbukkit.script.Host;
 import me.finalchild.nashornbukkit.script.nbscript.NBModuleLoader;
 import me.finalchild.nashornbukkit.script.nbscript.NBScriptLoader;
@@ -52,8 +54,9 @@ public final class NashornBukkit extends JavaPlugin {
         BukkitImporter.setCaching(true);
         BukkitImporter.getTypes();
 
-        getHost().addModuleLoader(new NBModuleLoader(), Collections.singleton("js"));
-        getHost().addScriptLoader(new NBScriptLoader(), Collections.singleton("js"));
+        NashornScriptEngine engine = (NashornScriptEngine) new NashornScriptEngineFactory().getScriptEngine(/*new String[] {"-scripting"}, */NashornBukkit.class.getClassLoader());
+        getHost().addModuleLoader(new NBModuleLoader(engine), Collections.singleton("js"));
+        getHost().addScriptLoader(new NBScriptLoader(engine), Collections.singleton("js"));
 
         getHost().loadModules(getDataFolder().toPath().resolve("modules"));
         getHost().loadScripts(getDataFolder().toPath());
