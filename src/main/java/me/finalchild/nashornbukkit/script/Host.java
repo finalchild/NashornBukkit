@@ -24,7 +24,6 @@
 
 package me.finalchild.nashornbukkit.script;
 
-import jdk.nashorn.api.scripting.NashornScriptEngine;
 import me.finalchild.nashornbukkit.NashornBukkit;
 
 import java.io.IOException;
@@ -35,13 +34,13 @@ import java.util.*;
 
 public final class Host {
 
-    private final Map<String, Extension> loadedExtensions = new HashMap<>();
+    private final Map<String, Module> loadedModules = new HashMap<>();
     private final Map<String, Script> loadedScripts = new HashMap<>();
 
+    private final Map<String, ModuleLoader> moduleLoaders = new HashMap<>();
     private final Map<String, ScriptLoader> scriptLoaders = new HashMap<>();
-    private final Map<String, ExtensionLoader> extensionLoaders = new HashMap<>();
 
-    public void loadExtensions(Path directory) {
+    public void loadModules(Path directory) {
         if (!Files.exists(directory)) {
             try {
                 Files.createDirectory(directory);
@@ -54,9 +53,10 @@ public final class Host {
             for (Path file : stream) {
                 if (!Files.isDirectory(file)) {
                     try {
-                        loadExtension(file);
+                        loadModule(file);
                     } catch (Throwable t) {
                         NashornBukkit.getInstance().getLogger().severe("Failed to load a file as a extension: " + file.getFileName());
+                        t.printStackTrace();
                     }
                 }
             }
@@ -65,18 +65,18 @@ public final class Host {
         }
     }
 
-    private Extension loadExtension(Path file) {
-        return loadExtension(getExtensionLoader(file)
-                .orElseThrow(() -> new UnsupportedOperationException("Could not find a ExtensionLoader for the file: " + file.getFileName().toString()))
-                .loadExtension(file, this));
+    private Module loadModule(Path file) {
+        return loadModule(getModuleLoader(file)
+                .orElseThrow(() -> new UnsupportedOperationException("Could not find a ModuleLoader for the file: " + file.getFileName().toString()))
+                .loadModule(file, this));
     }
 
-    public Extension loadExtension(Extension extension) {
-        if (loadedExtensions.containsKey(extension.getId())) {
-            throw new UnsupportedOperationException("Duplicate extension id: " + extension.getId());
+    public Module loadModule(Module module) {
+        if (loadedModules.containsKey(module.getId())) {
+            throw new UnsupportedOperationException("Duplicate module id: " + module.getId());
         }
-        loadedExtensions.put(extension.getId(), extension);
-        return extension;
+        loadedModules.put(module.getId(), module);
+        return module;
     }
 
     public void loadScripts(Path directory) {
@@ -95,6 +95,7 @@ public final class Host {
                         loadScript(file);
                     } catch (Throwable t) {
                         NashornBukkit.getInstance().getLogger().severe("Failed to load a file as a script: " + file.getFileName());
+                        t.printStackTrace();
                     }
                 }
             }
@@ -123,16 +124,17 @@ public final class Host {
                 loadedScript.eval();
             } catch (Throwable t) {
                 NashornBukkit.getInstance().getLogger().severe("Failed to run a script: " + loadedScript.getId());
+                t.printStackTrace();
             }
         }
     }
 
-    public Map<String, Extension> getExtensions() {
-        return Collections.unmodifiableMap(loadedExtensions);
+    public Map<String, Module> getModules() {
+        return Collections.unmodifiableMap(loadedModules);
     }
 
-    public Optional<Extension> getExtension(String id) {
-        return Optional.ofNullable(loadedExtensions.get(id));
+    public Optional<Module> getModule(String id) {
+        return Optional.ofNullable(loadedModules.get(id));
     }
 
     public Map<String, Script> getScripts(String id) {
@@ -145,6 +147,22 @@ public final class Host {
 
     public void onDisable() {
         loadedScripts.values().forEach(Script::disable);
+    }
+
+    public Map<String, ModuleLoader> getModuleLoaders() {
+        return Collections.unmodifiableMap(moduleLoaders);
+    }
+
+    public Optional<ModuleLoader> getModuleLoader(Path file) {
+        return getModuleLoader(com.google.common.io.Files.getFileExtension(file.toString()));
+    }
+
+    public Optional<ModuleLoader> getModuleLoader(String fileExtension) {
+        return Optional.ofNullable(moduleLoaders.get(fileExtension));
+    }
+
+    public void addModuleLoader(ModuleLoader loader, Set<String> fileExtensions) {
+        fileExtensions.forEach((fileExtension) -> moduleLoaders.put(fileExtension, loader));
     }
 
     public Map<String, ScriptLoader> getScriptLoaders() {
@@ -161,22 +179,6 @@ public final class Host {
 
     public void addScriptLoader(ScriptLoader loader, Set<String> fileExtensions) {
         fileExtensions.forEach((fileExtension) -> scriptLoaders.put(fileExtension, loader));
-    }
-
-    public Map<String, ExtensionLoader> getExtensionLoaders() {
-        return Collections.unmodifiableMap(extensionLoaders);
-    }
-
-    public Optional<ExtensionLoader> getExtensionLoader(Path file) {
-        return getExtensionLoader(com.google.common.io.Files.getFileExtension(file.toString()));
-    }
-
-    public Optional<ExtensionLoader> getExtensionLoader(String fileExtension) {
-        return Optional.ofNullable(extensionLoaders.get(fileExtension));
-    }
-
-    public void addExtensionLoader(ExtensionLoader loader, Set<String> fileExtensions) {
-        fileExtensions.forEach((fileExtension) -> extensionLoaders.put(fileExtension, loader));
     }
 
 }

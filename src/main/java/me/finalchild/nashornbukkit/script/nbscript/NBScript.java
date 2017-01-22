@@ -24,11 +24,13 @@
 
 package me.finalchild.nashornbukkit.script.nbscript;
 
+import com.google.gson.GsonBuilder;
+import com.google.gson.reflect.TypeToken;
 import jdk.internal.dynalink.beans.StaticClass;
 import jdk.nashorn.api.scripting.JSObject;
 import jdk.nashorn.api.scripting.NashornScriptEngine;
 import me.finalchild.nashornbukkit.NashornBukkit;
-import me.finalchild.nashornbukkit.script.Extension;
+import me.finalchild.nashornbukkit.script.Module;
 import me.finalchild.nashornbukkit.script.Host;
 import me.finalchild.nashornbukkit.script.Script;
 import me.finalchild.nashornbukkit.util.BukkitImporter;
@@ -45,13 +47,12 @@ import org.bukkit.scheduler.BukkitTask;
 
 import javax.script.*;
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.NoSuchElementException;
+import java.util.*;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.logging.Level;
@@ -64,6 +65,7 @@ public final class NBScript implements Script {
     private final Host host;
 
     private final String id;
+    private final Path dataFolder;
 
     private final NashornScriptEngine engine;
 
@@ -71,10 +73,11 @@ public final class NBScript implements Script {
 
     private final ScriptContext context;
 
-    private final Map<String, Extension<NBScript>> installedExtensions = new HashMap<>();
-    private final Map<String, Extension<NBScript>> extensionsBeingInstalled = new HashMap<>();
+    private final Map<String, Module<NBScript>> installedModules = new HashMap<>();
+    private final Map<String, Module<NBScript>> modulesBeingInstalled = new HashMap<>();
 
     private final Listener listener;
+    private final Map<String, Object> config;
 
     public NBScript(Path file, Host host, NashornScriptEngine engine) {
         this.file = file;
@@ -82,6 +85,19 @@ public final class NBScript implements Script {
         this.engine = engine;
 
         id = com.google.common.io.Files.getNameWithoutExtension(file.toString());
+        dataFolder = getFile().getParent().resolve(getId());
+        if (Files.exists(dataFolder)) {
+            if (!Files.isDirectory(dataFolder)) {
+                throw new RuntimeException("Data folder for the script " + getId() + " is not a directory!");
+            }
+        } else {
+            try {
+                Files.createDirectory(dataFolder);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+
         String prefix = "[" + id + "] ";
         Logger logger = new Logger(getId(), null) {
             @Override
@@ -98,11 +114,13 @@ public final class NBScript implements Script {
         Bindings bindings = getEngine().createBindings();
         context.setBindings(bindings, ScriptContext.ENGINE_SCOPE);
         bindings.put("script", this);
+        /*
         bindings.remove("print");
         bindings.remove("load");
         bindings.remove("loadWithNewGlobal");
         bindings.remove("exit");
         bindings.remove("quit");
+        */
         try {
             Object global = getEngine().eval("this", context);
             getEngine().invokeMethod(bindings.get("Object"), "bindProperties", global, this);
@@ -116,6 +134,19 @@ public final class NBScript implements Script {
 
         listener = new Listener() {
         };
+
+        Map<String, Object> config1;
+        if (Files.exists(getConfigFile())) {
+            try (BufferedReader br = Files.newBufferedReader(getConfigFile(), StandardCharsets.UTF_8)) {
+                config1 = new GsonBuilder().setPrettyPrinting().create().fromJson(br, new TypeToken<Map<String, Object>>(){}.getType());
+            } catch (IOException e) {
+                e.printStackTrace();
+                config1 = new HashMap<>();
+            }
+        } else {
+            config1 = new HashMap<>();
+        }
+        config = config1;
     }
 
     @Override
@@ -148,6 +179,12 @@ public final class NBScript implements Script {
                 jsobj.call(null);
             }
         }
+
+        try (BufferedWriter bw = Files.newBufferedWriter(getConfigFile())) {
+            new GsonBuilder().setPrettyPrinting().create().toJson(getConfig(), bw);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     public Path getFile() {
@@ -176,30 +213,30 @@ public final class NBScript implements Script {
         return context;
     }
 
-    public Map<String, Extension<NBScript>> getInstalledExtensions() {
-        return Collections.unmodifiableMap(installedExtensions);
+    public Map<String, Module<NBScript>> getInstalledModules() {
+        return Collections.unmodifiableMap(installedModules);
     }
 
-    public void evalExtension(Extension<NBScript> extension) {
-        if (extensionsBeingInstalled.containsKey(extension.getId())) {
-            throw new UnsupportedOperationException("Circular dependency found: " + extension.getId());
+    public void evalModule(Module<NBScript> module) {
+        if (modulesBeingInstalled.containsKey(module.getId())) {
+            throw new UnsupportedOperationException("Circular dependency found: " + module.getId());
         }
-        if (getInstalledExtensions().containsKey(extension.getId())) {
+        if (getInstalledModules().containsKey(module.getId())) {
             return;
         }
 
-        extensionsBeingInstalled.put(extension.getId(), extension);
+        modulesBeingInstalled.put(module.getId(), module);
 
-        extension.apply(this);
+        module.apply(this);
 
-        extensionsBeingInstalled.remove(extension.getId());
-        installedExtensions.put(extension.getId(), extension);
+        modulesBeingInstalled.remove(module.getId());
+        installedModules.put(module.getId(), module);
     }
 
-    public Extension require(String id) {
-        Extension extension = getHost().getExtension(id).orElseThrow(NoSuchElementException::new);
-        evalExtension(extension);
-        return extension;
+    public Module require(String id) {
+        Module module = getHost().getModule(id).orElseThrow(NoSuchElementException::new);
+        evalModule(module);
+        return module;
     }
 
     public void on(StaticClass event, Consumer<Event> executor) {
@@ -311,6 +348,18 @@ public final class NBScript implements Script {
 
     public BukkitTask runTaskTimerAsynchronously(BukkitRunnable bukkitRunnable, long delay, long period) {
         return bukkitRunnable.runTaskTimerAsynchronously(NashornBukkit.getInstance(), delay, period);
+    }
+
+    public Path getDataFolder() {
+        return dataFolder;
+    }
+
+    public Path getConfigFile() {
+        return getDataFolder().resolve("config.json");
+    }
+
+    public Map<String, Object> getConfig() {
+        return config;
     }
 
 }

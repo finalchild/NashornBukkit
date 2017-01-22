@@ -22,18 +22,13 @@
  * THE SOFTWARE.
  */
 
-package me.finalchild.nashornbukkit.script.nbscript;
-
-import me.finalchild.nashornbukkit.script.ExtensionLoader;
-import me.finalchild.nashornbukkit.script.Host;
+package me.finalchild.nashornbukkit.script;
 
 import java.nio.file.Path;
 
-public final class NBExtensionLoader implements ExtensionLoader {
+@FunctionalInterface
+public interface ModuleLoader {
 
-    @Override
-    public NBExtension loadExtension(Path file, Host host) {
-        return new NBExtension(file, host);
-    }
+    Module loadModule(Path file, Host host);
 
 }

@@ -24,11 +24,12 @@
 
 package me.finalchild.nashornbukkit.script;
 
-import java.nio.file.Path;
+public interface Module<T extends Script> {
 
-@FunctionalInterface
-public interface ExtensionLoader {
+    void apply(T script);
 
-    Extension loadExtension(Path file, Host host);
+    Host getHost();
+
+    String getId();
 
 }

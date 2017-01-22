@@ -24,7 +24,8 @@
 
 package me.finalchild.nashornbukkit.script.nbscript;
 
-import me.finalchild.nashornbukkit.script.Extension;
+import jdk.nashorn.api.scripting.JSObject;
+import me.finalchild.nashornbukkit.script.Module;
 import me.finalchild.nashornbukkit.script.Host;
 import me.finalchild.nashornbukkit.util.BukkitImporter;
 import me.finalchild.nashornbukkit.util.ScriptExceptionLogger;
@@ -38,14 +39,14 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
-public final class NBExtension implements Extension<NBScript> {
+public final class NBModule implements Module<NBScript> {
 
     private Path file;
 
     private Host host;
     private String id;
 
-    public NBExtension(Path file, Host host) {
+    public NBModule(Path file, Host host) {
         this.file = file;
         this.host = host;
 
@@ -60,15 +61,8 @@ public final class NBExtension implements Extension<NBScript> {
             e.printStackTrace();
         }
 
-        Bindings bindings = script.getContext().getBindings(ScriptContext.ENGINE_SCOPE);
-        bindings.put(ScriptEngine.FILENAME, getFile().getFileName());
-        try (BufferedReader br = Files.newBufferedReader(getFile())) {
-            script.getEngine().eval(br, script.getContext());
-        } catch (IOException e) {
-            e.printStackTrace();
-        } catch (ScriptException e) {
-            ScriptExceptionLogger.log(e);
-        }
+        JSObject loadObj = (JSObject) script.getContext().getAttribute("load");
+        loadObj.call(null, getFile().toString());
     }
 
     public Path getFile() {

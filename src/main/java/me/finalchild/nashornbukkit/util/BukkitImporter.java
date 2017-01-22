@@ -35,7 +35,7 @@ import jdk.nashorn.internal.runtime.Context;
 import jdk.nashorn.internal.runtime.ErrorManager;
 import jdk.nashorn.internal.runtime.options.Options;
 import me.finalchild.nashornbukkit.NashornBukkit;
-import me.finalchild.nashornbukkit.script.nbscript.NBExtension;
+import me.finalchild.nashornbukkit.script.nbscript.NBModule;
 import me.finalchild.nashornbukkit.script.nbscript.NBScript;
 
 import javax.script.Bindings;
@@ -116,7 +116,7 @@ public final class BukkitImporter {
                 });
     }
 
-    public static void importBukkit(NBScript script, NBExtension extension) throws IOException {
+    public static void importBukkit(NBScript script, NBModule extension) throws IOException {
         Bindings bindings = script.getContext().getBindings(ScriptContext.ENGINE_SCOPE);
         Map<String, ClassPath.ClassInfo> types = getTypes();
 

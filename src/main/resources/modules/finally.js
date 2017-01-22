@@ -55,3 +55,5 @@ Function.prototype.runTaskTimerAsynchronously = function(delay, period) {
 Function.prototype.timerAsync = function(delay, period) {
   return script.runTaskTimerAsynchronously(this, delay, period);
 }
+
+var config = script.getConfig();
