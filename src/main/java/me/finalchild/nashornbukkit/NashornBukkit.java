@@ -48,7 +48,6 @@ public final class NashornBukkit extends JavaPlugin {
         host = new Host();
 
         saveResource("modules/finally.js", true);
-        saveResource("modules/json2.js", true);
         BukkitImporter.setCaching(true);
         getHost().addScriptLoader(new NBScriptLoader(), Collections.singleton("js"));
         getHost().addModuleLoader(new NBModuleLoader(), Collections.singleton("js"));
